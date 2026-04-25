@@ -5,7 +5,6 @@
 
 import React from 'react';
 import { useWatchlist } from '../../hooks/useWatchlist';
-import './WatchlistButton.module.css';
 
 interface WatchlistButtonProps {
   playerId: number;
@@ -31,20 +30,24 @@ export const WatchlistButton: React.FC<WatchlistButtonProps> = ({
   };
 
   const buttonText = isWatched ? 'Remove from Watchlist' : 'Add to Watchlist';
-  const buttonClass = `watchlist-button ${isWatched ? 'watched' : 'unwatched'} ${className}`;
 
   return (
-    <div className="watchlist-button-container">
+    <div className="flex flex-col items-center gap-2">
       <button
-        className={buttonClass}
+        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+          isWatched 
+            ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border border-yellow-300' 
+            : 'bg-blue-100 text-blue-800 hover:bg-blue-200 border border-blue-300'
+        } ${className}`}
         onClick={handleClick}
         title={`${buttonText}${playerName ? ` - ${playerName}` : ''}`}
         aria-label={`${buttonText}${playerName ? ` for ${playerName}` : ''}`}
       >
-        {isWatched ? '★' : '☆'} {buttonText}
+        <span className="text-lg">{isWatched ? '★' : '☆'}</span>
+        {buttonText}
       </button>
       {error && (
-        <div className="watchlist-error" role="alert">
+        <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded px-3 py-1" role="alert">
           {error}
         </div>
       )}
