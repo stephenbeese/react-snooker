@@ -24,3 +24,6 @@ export { PlayerStats } from './pages/PlayerStats';
 export { MatchHistory } from './pages/MatchHistory';
 export { FormChart } from './pages/FormChart';
 export { PressureStats } from './pages/PressureStats';
+export { WatchlistSection } from './pages/WatchlistSection';
+export { LiveMatchesSection } from './pages/LiveMatchesSection';
+export { UpcomingMatchesSection } from './pages/UpcomingMatchesSection';

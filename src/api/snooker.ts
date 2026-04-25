@@ -20,7 +20,7 @@ import type {
   Gender,
 } from '../types/snooker';
 
-const API_BASE = 'https://api.snooker.org';
+const API_BASE = import.meta.env.DEV ? '/api/snooker' : 'https://api.snooker.org';
 
 // Cache configuration
 const CACHE_TTL_STANDARD = 5 * 60 * 1000; // 5 minutes for standard endpoints
@@ -117,12 +117,18 @@ const fetchFromApi = async <T>(
 
   try {
     const url = `${API_BASE}/?${params.toString()}`;
-    const response = await fetch(url, {
-      headers: {
-        'X-Requested-By': getApiKey(),
-        'Content-Type': 'application/json',
-      },
-    });
+    
+    // In development, the proxy handles the X-Requested-By header
+    // In production, we need to include it (but this will likely fail due to CORS)
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    
+    if (!import.meta.env.DEV) {
+      headers['X-Requested-By'] = getApiKey();
+    }
+    
+    const response = await fetch(url, { headers });
 
     if (!response.ok) {
       const error: ApiError = {

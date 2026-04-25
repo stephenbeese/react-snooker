@@ -64,7 +64,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
           // Assert X-Requested-By header is present
           expect(headers).toBeDefined();
           expect(headers['X-Requested-By']).toBeDefined();
-          expect(headers['X-Requested-By']).toBe('BeesePortfolio130');
+          expect(headers['X-Requested-By']).toBe('test-api-key');
           expect(headers['Content-Type']).toBe('application/json');
         }),
         { numRuns: 50 }
@@ -93,7 +93,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
           const callArgs = (global.fetch as vi.MockedFunction<typeof fetch>).mock.calls[0];
           const headers = callArgs[1]?.headers as Record<string, string>;
 
-          expect(headers['X-Requested-By']).toBe('BeesePortfolio130');
+          expect(headers['X-Requested-By']).toBe('test-api-key');
         }),
         { numRuns: 50 }
       );
@@ -118,7 +118,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
             const callArgs = (global.fetch as vi.MockedFunction<typeof fetch>).mock.calls[0];
             const headers = callArgs[1]?.headers as Record<string, string>;
 
-            expect(headers['X-Requested-By']).toBe('BeesePortfolio130');
+            expect(headers['X-Requested-By']).toBe('test-api-key');
           }
         ),
         { numRuns: 50 }

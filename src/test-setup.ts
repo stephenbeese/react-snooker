@@ -6,6 +6,14 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
+// Mock environment variables
+vi.mock('import.meta', () => ({
+  env: {
+    VITE_X_REQUESTED_BY: 'test-api-key',
+    DEV: true,
+  },
+}));
+
 // Mock window.matchMedia for responsive tests
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
