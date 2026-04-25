@@ -8,6 +8,7 @@ import { usePlayer, usePlayerMatches } from '../hooks/useSnookerApi';
 import { PlayerStats } from '../components/pages/PlayerStats';
 import { MatchHistory } from '../components/pages/MatchHistory';
 import { FormChart } from '../components/pages/FormChart';
+import { PressureStats } from '../components/pages/PressureStats';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import { WatchlistButton } from '../components/common/WatchlistButton';
@@ -168,6 +169,17 @@ export const PlayerProfilePage = ({ playerId }: PlayerProfilePageProps) => {
           />
         </div>
       )}
+
+      {/* Pressure Situation Performance */}
+      <div className="mb-6">
+        <PressureStats
+          matches={matches || []}
+          playerId={playerId}
+          playerName={player.Name}
+          loading={matchesLoading}
+          error={matchesError}
+        />
+      </div>
 
       {/* Match History */}
       <div>

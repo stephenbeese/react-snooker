@@ -23,3 +23,4 @@ export { PlayerFilters } from './pages/PlayerFilters';
 export { PlayerStats } from './pages/PlayerStats';
 export { MatchHistory } from './pages/MatchHistory';
 export { FormChart } from './pages/FormChart';
+export { PressureStats } from './pages/PressureStats';
