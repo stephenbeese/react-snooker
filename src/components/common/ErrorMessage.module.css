@@ -1,0 +1,29 @@
+/* ErrorMessage component styles */
+
+.errorMessage {
+  background-color: #ffebee;
+  border: 1px solid #ef5350;
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 0;
+  color: #c62828;
+}
+
+.errorMessage p {
+  margin: 0 0 1rem 0;
+}
+
+.errorMessage button {
+  background-color: #ef5350;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.3s ease;
+}
+
+.errorMessage button:hover {
+  background-color: #e53935;
+}
