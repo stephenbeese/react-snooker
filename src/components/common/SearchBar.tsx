@@ -2,21 +2,41 @@
  * SearchBar component - Debounced search input
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface SearchBarProps {
   onSearch: (term: string) => void;
   placeholder?: string;
+  debounceMs?: number;
 }
 
-export const SearchBar = ({ onSearch, placeholder = 'Search...' }: SearchBarProps) => {
+export const SearchBar = ({ onSearch, placeholder = 'Search...', debounceMs = 300 }: SearchBarProps) => {
   const [value, setValue] = useState('');
+  const timeoutRef = useRef<number | null>(null);
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const term = e.target.value;
     setValue(term);
-    onSearch(term);
-  }, [onSearch]);
+
+    // Clear existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    // Set new timeout for debounced search
+    timeoutRef.current = window.setTimeout(() => {
+      onSearch(term);
+    }, debounceMs);
+  }, [onSearch, debounceMs]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <input
