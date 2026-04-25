@@ -22,6 +22,24 @@ import type {
 
 const API_BASE = 'https://api.snooker.org';
 
+// Cache configuration
+const CACHE_TTL_STANDARD = 5 * 60 * 1000; // 5 minutes for standard endpoints
+const CACHE_TTL_LIVE = 1 * 60 * 1000; // 1 minute for live data
+
+/**
+ * Cache entry structure
+ */
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  ttl: number;
+}
+
+/**
+ * In-memory cache storage
+ */
+const apiCache = new Map<string, CacheEntry<any>>();
+
 /**
  * Get the API key from environment variables
  */
@@ -34,9 +52,69 @@ const getApiKey = (): string => {
 };
 
 /**
- * Generic fetch wrapper with error handling and header injection
+ * Generate a cache key from function name and parameters
  */
-const fetchFromApi = async <T>(params: URLSearchParams): Promise<T> => {
+const generateCacheKey = (functionName: string, params: URLSearchParams): string => {
+  return `${functionName}:${params.toString()}`;
+};
+
+/**
+ * Check if a cache entry is still valid
+ */
+const isCacheValid = (entry: CacheEntry<any>): boolean => {
+  const now = Date.now();
+  return now - entry.timestamp < entry.ttl;
+};
+
+/**
+ * Get data from cache if available and valid
+ */
+export const getFromCache = <T>(key: string): T | null => {
+  const entry = apiCache.get(key);
+  if (!entry) {
+    return null;
+  }
+  if (!isCacheValid(entry)) {
+    apiCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+};
+
+/**
+ * Store data in cache with TTL
+ */
+export const setCache = <T>(key: string, data: T, ttl: number = CACHE_TTL_STANDARD): void => {
+  apiCache.set(key, {
+    data,
+    timestamp: Date.now(),
+    ttl,
+  });
+};
+
+/**
+ * Clear all API cache
+ */
+export const clearApiCache = (): void => {
+  apiCache.clear();
+};
+
+/**
+ * Generic fetch wrapper with error handling, header injection, and caching
+ */
+const fetchFromApi = async <T>(
+  params: URLSearchParams,
+  functionName: string,
+  ttl: number = CACHE_TTL_STANDARD
+): Promise<T> => {
+  const cacheKey = generateCacheKey(functionName, params);
+
+  // Check cache first
+  const cachedData = getFromCache<T>(cacheKey);
+  if (cachedData !== null) {
+    return cachedData;
+  }
+
   try {
     const url = `${API_BASE}/?${params.toString()}`;
     const response = await fetch(url, {
@@ -55,6 +133,10 @@ const fetchFromApi = async <T>(params: URLSearchParams): Promise<T> => {
     }
 
     const data = await response.json();
+    
+    // Store in cache
+    setCache<T>(cacheKey, data, ttl);
+    
     return data as T;
   } catch (error) {
     if (error instanceof Error) {
@@ -70,7 +152,7 @@ const fetchFromApi = async <T>(params: URLSearchParams): Promise<T> => {
  */
 export const getEvent = (eventId: number): Promise<Event> => {
   const params = new URLSearchParams({ e: String(eventId) });
-  return fetchFromApi<Event>(params);
+  return fetchFromApi<Event>(params, 'getEvent', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -89,7 +171,7 @@ export const getMatch = (
     r: String(roundId),
     n: String(matchNumber),
   });
-  return fetchFromApi<Match>(params);
+  return fetchFromApi<Match>(params, 'getMatch', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -98,7 +180,7 @@ export const getMatch = (
  */
 export const getPlayer = (playerId: number): Promise<PlayerProfile> => {
   const params = new URLSearchParams({ p: String(playerId) });
-  return fetchFromApi<PlayerProfile>(params);
+  return fetchFromApi<PlayerProfile>(params, 'getPlayer', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -117,7 +199,7 @@ export const getEventsBySeason = (
   if (tour) {
     params.append('tr', tour);
   }
-  return fetchFromApi<Event[]>(params);
+  return fetchFromApi<Event[]>(params, 'getEventsBySeason', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -129,7 +211,7 @@ export const getMatchesByEvent = (eventId: number): Promise<Match[]> => {
     t: '6',
     e: String(eventId),
   });
-  return fetchFromApi<Match[]>(params);
+  return fetchFromApi<Match[]>(params, 'getMatchesByEvent', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -141,7 +223,7 @@ export const getOngoingMatches = (tour?: Tour): Promise<Match[]> => {
   if (tour) {
     params.append('tr', tour);
   }
-  return fetchFromApi<Match[]>(params);
+  return fetchFromApi<Match[]>(params, 'getOngoingMatches', CACHE_TTL_LIVE);
 };
 
 /**
@@ -165,7 +247,7 @@ export const getPlayerMatches = (
   if (tour) {
     params.append('tr', tour);
   }
-  return fetchFromApi<Match[]>(params);
+  return fetchFromApi<Match[]>(params, 'getPlayerMatches', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -177,7 +259,7 @@ export const getPlayersByEvent = (eventId: number): Promise<Player[]> => {
     t: '9',
     e: String(eventId),
   });
-  return fetchFromApi<Player[]>(params);
+  return fetchFromApi<Player[]>(params, 'getPlayersByEvent', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -199,7 +281,7 @@ export const getAllPlayers = (
   if (gender) {
     params.append('se', gender);
   }
-  return fetchFromApi<Player[]>(params);
+  return fetchFromApi<Player[]>(params, 'getAllPlayers', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -215,7 +297,7 @@ export const getRankings = (
     rt: rankingType,
     s: String(season),
   });
-  return fetchFromApi<Ranking[]>(params);
+  return fetchFromApi<Ranking[]>(params, 'getRankings', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -233,7 +315,7 @@ export const getRoundInfo = (
   } else if (season) {
     params.append('s', String(season));
   }
-  return fetchFromApi<any[]>(params);
+  return fetchFromApi<any[]>(params, 'getRoundInfo', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -245,7 +327,7 @@ export const getEventSeeding = (eventId: number): Promise<EventSeeding> => {
     t: '13',
     e: String(eventId),
   });
-  return fetchFromApi<EventSeeding>(params);
+  return fetchFromApi<EventSeeding>(params, 'getEventSeeding', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -257,7 +339,7 @@ export const getUpcomingMatches = (tour?: Tour): Promise<Match[]> => {
   if (tour) {
     params.append('tr', tour);
   }
-  return fetchFromApi<Match[]>(params);
+  return fetchFromApi<Match[]>(params, 'getUpcomingMatches', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -276,7 +358,7 @@ export const getRecentResults = (
   if (tour) {
     params.append('tr', tour);
   }
-  return fetchFromApi<Match[]>(params);
+  return fetchFromApi<Match[]>(params, 'getRecentResults', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -302,7 +384,7 @@ export const getHeadToHead = (
   if (tour) {
     params.append('tr', tour);
   }
-  return fetchFromApi<Match[]>(params);
+  return fetchFromApi<Match[]>(params, 'getHeadToHead', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -314,7 +396,7 @@ export const getMatchesAroundNow = (tour?: Tour): Promise<Match[]> => {
   if (tour) {
     params.append('tr', tour);
   }
-  return fetchFromApi<Match[]>(params);
+  return fetchFromApi<Match[]>(params, 'getMatchesAroundNow', CACHE_TTL_LIVE);
 };
 
 /**
@@ -326,7 +408,7 @@ export const getEventCandidates = (eventId: number): Promise<any[]> => {
     t: '18',
     e: String(eventId),
   });
-  return fetchFromApi<any[]>(params);
+  return fetchFromApi<any[]>(params, 'getEventCandidates', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -338,7 +420,7 @@ export const getEventFinals = (eventId: number): Promise<Match[]> => {
     t: '19',
     e: String(eventId),
   });
-  return fetchFromApi<Match[]>(params);
+  return fetchFromApi<Match[]>(params, 'getEventFinals', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -346,7 +428,7 @@ export const getEventFinals = (eventId: number): Promise<Match[]> => {
  */
 export const getCurrentSeason = (): Promise<Season> => {
   const params = new URLSearchParams({ t: '20' });
-  return fetchFromApi<Season>(params);
+  return fetchFromApi<Season>(params, 'getCurrentSeason', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -358,7 +440,7 @@ export const getEventRankingPoints = (eventId: number): Promise<RankingPoints[]>
     t: '21',
     e: String(eventId),
   });
-  return fetchFromApi<RankingPoints[]>(params);
+  return fetchFromApi<RankingPoints[]>(params, 'getEventRankingPoints', CACHE_TTL_STANDARD);
 };
 
 /**
