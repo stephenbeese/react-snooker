@@ -17,5 +17,6 @@ export { SearchBar } from './common/SearchBar';
 export { WatchlistButton } from './common/WatchlistButton';
 export { WatchlistDisplay } from './common/WatchlistDisplay';
 
-// Example component
-export { ExampleApiUsage } from './ExampleApiUsage';
+// Page components
+export { PlayerList } from './pages/PlayerList';
+export { PlayerFilters } from './pages/PlayerFilters';

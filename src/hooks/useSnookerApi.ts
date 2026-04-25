@@ -50,8 +50,8 @@ const setCache = (key: string, data: unknown): void => {
  * Generic hook for API calls with caching
  */
 const useApiCall = <T,>(
-  apiFunction: (...args: unknown[]) => Promise<T>,
-  args: unknown[],
+  apiFunction: (...args: any[]) => Promise<T>,
+  args: any[],
   cacheKey: string
 ): UseApiState<T> => {
   const [state, setState] = useState<UseApiState<T>>({
