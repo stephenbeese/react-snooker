@@ -20,3 +20,6 @@ export { WatchlistDisplay } from './common/WatchlistDisplay';
 // Page components
 export { PlayerList } from './pages/PlayerList';
 export { PlayerFilters } from './pages/PlayerFilters';
+export { PlayerStats } from './pages/PlayerStats';
+export { MatchHistory } from './pages/MatchHistory';
+export { FormChart } from './pages/FormChart';
