@@ -26,23 +26,23 @@ interface UseApiState<T> {
 /**
  * Simple in-memory cache for API responses
  */
-const apiCache = new Map<string, { data: any; timestamp: number }>();
+const apiCache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-const getCacheKey = (fn: string, args: any[]): string => {
+const getCacheKey = (fn: string, args: unknown[]): string => {
   return `${fn}:${JSON.stringify(args)}`;
 };
 
-const getFromCache = (key: string): any | null => {
+const getFromCache = <T = unknown>(key: string): T | null => {
   const cached = apiCache.get(key);
   if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
+    return cached.data as T;
   }
   apiCache.delete(key);
   return null;
 };
 
-const setCache = (key: string, data: any): void => {
+const setCache = (key: string, data: unknown): void => {
   apiCache.set(key, { data, timestamp: Date.now() });
 };
 
@@ -50,8 +50,8 @@ const setCache = (key: string, data: any): void => {
  * Generic hook for API calls with caching
  */
 const useApiCall = <T,>(
-  apiFunction: (...args: any[]) => Promise<T>,
-  args: any[],
+  apiFunction: (...args: unknown[]) => Promise<T>,
+  args: unknown[],
   cacheKey: string
 ): UseApiState<T> => {
   const [state, setState] = useState<UseApiState<T>>({
@@ -67,7 +67,7 @@ const useApiCall = <T,>(
 
     const fetchData = async () => {
       // Check cache first
-      const cached = getFromCache(cacheKey);
+      const cached = getFromCache<T>(cacheKey);
       if (cached) {
         if (isMountedRef.current) {
           setState({ data: cached, loading: false, error: null });

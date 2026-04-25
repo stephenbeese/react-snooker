@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 /**
  * Property-Based Tests for Snooker API Client
  * Tests for API header inclusion, response caching, and schema validation
@@ -14,7 +15,6 @@ import {
   setCache,
   clearApiCache,
 } from '../api/snooker';
-import type { Event, Player, Ranking } from '../types/snooker';
 
 // Mock fetch globally
 global.fetch = vi.fn();
@@ -42,7 +42,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
       fc.assert(
         fc.property(fc.integer({ min: 1, max: 1000000 }), (eventId) => {
           // Mock successful response
-          (global.fetch as any).mockResolvedValueOnce({
+          (global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
             ok: true,
             json: async () => ({
               ID: eventId,
@@ -58,8 +58,8 @@ describe('Snooker API Client - Property-Based Tests', () => {
 
           // Verify fetch was called with correct headers
           expect(global.fetch).toHaveBeenCalled();
-          const callArgs = (global.fetch as any).mock.calls[0];
-          const headers = callArgs[1]?.headers;
+          const callArgs = (global.fetch as vi.MockedFunction<typeof fetch>).mock.calls[0];
+          const headers = callArgs[1]?.headers as Record<string, string>;
 
           // Assert X-Requested-By header is present
           expect(headers).toBeDefined();
@@ -75,7 +75,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
       fc.assert(
         fc.property(fc.integer({ min: 1, max: 1000000 }), (playerId) => {
           // Mock successful response
-          (global.fetch as any).mockResolvedValueOnce({
+          (global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
             ok: true,
             json: async () => ({
               ID: playerId,
@@ -90,8 +90,8 @@ describe('Snooker API Client - Property-Based Tests', () => {
 
           // Verify fetch was called with correct headers
           expect(global.fetch).toHaveBeenCalled();
-          const callArgs = (global.fetch as any).mock.calls[0];
-          const headers = callArgs[1]?.headers;
+          const callArgs = (global.fetch as vi.MockedFunction<typeof fetch>).mock.calls[0];
+          const headers = callArgs[1]?.headers as Record<string, string>;
 
           expect(headers['X-Requested-By']).toBe('BeesePortfolio130');
         }),
@@ -102,13 +102,10 @@ describe('Snooker API Client - Property-Based Tests', () => {
     it('should include X-Requested-By header for all endpoint types', () => {
       fc.assert(
         fc.property(
-          fc.tuple(
-            fc.integer({ min: 1, max: 1000000 }),
-            fc.integer({ min: 2020, max: 2024 })
-          ),
-          ([season, year]) => {
+          fc.integer({ min: 1, max: 1000000 }),
+          (season) => {
             // Mock successful response
-            (global.fetch as any).mockResolvedValueOnce({
+            (global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
               ok: true,
               json: async () => [],
             });
@@ -118,8 +115,8 @@ describe('Snooker API Client - Property-Based Tests', () => {
 
             // Verify fetch was called with correct headers
             expect(global.fetch).toHaveBeenCalled();
-            const callArgs = (global.fetch as any).mock.calls[0];
-            const headers = callArgs[1]?.headers;
+            const callArgs = (global.fetch as vi.MockedFunction<typeof fetch>).mock.calls[0];
+            const headers = callArgs[1]?.headers as Record<string, string>;
 
             expect(headers['X-Requested-By']).toBe('BeesePortfolio130');
           }
@@ -200,7 +197,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
       fc.assert(
         fc.property(fc.string({ minLength: 1, maxLength: 50 }), (cacheKey) => {
           // Try to retrieve non-existent key
-          const retrieved = getFromCache<any>(cacheKey);
+          const retrieved = getFromCache<unknown>(cacheKey);
 
           // Should return null
           expect(retrieved).toBeNull();
@@ -227,7 +224,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
 
             // Verify entries are stored
             entries.forEach(([key]) => {
-              expect(getFromCache(key)).not.toBeNull();
+              expect(getFromCache<unknown>(key)).not.toBeNull();
             });
 
             // Clear cache
@@ -235,7 +232,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
 
             // Verify all entries are cleared
             entries.forEach(([key]) => {
-              expect(getFromCache(key)).toBeNull();
+              expect(getFromCache<unknown>(key)).toBeNull();
             });
           }
         ),
@@ -266,7 +263,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
           }),
           (eventData) => {
             // Mock successful response
-            (global.fetch as any).mockResolvedValueOnce({
+            (global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
               ok: true,
               json: async () => eventData,
             });
@@ -302,7 +299,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
           }),
           (playerData) => {
             // Mock successful response
-            (global.fetch as any).mockResolvedValueOnce({
+            (global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
               ok: true,
               json: async () => playerData,
             });
@@ -342,7 +339,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
           ),
           (rankingData) => {
             // Mock successful response
-            (global.fetch as any).mockResolvedValueOnce({
+            (global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
               ok: true,
               json: async () => rankingData,
             });
@@ -380,7 +377,7 @@ describe('Snooker API Client - Property-Based Tests', () => {
           }),
           (eventData) => {
             // Mock successful response
-            (global.fetch as any).mockResolvedValueOnce({
+            (global.fetch as vi.MockedFunction<typeof fetch>).mockResolvedValueOnce({
               ok: true,
               json: async () => eventData,
             });
@@ -389,10 +386,10 @@ describe('Snooker API Client - Property-Based Tests', () => {
             getEvent(eventData.ID);
 
             // Verify all required fields are present
-            const requiredFields = ['ID', 'Name', 'StartDate', 'EndDate', 'Tour'];
+            const requiredFields = ['ID', 'Name', 'StartDate', 'EndDate', 'Tour'] as const;
             requiredFields.forEach((field) => {
               expect(eventData).toHaveProperty(field);
-              expect(eventData[field as keyof typeof eventData]).toBeDefined();
+              expect(eventData[field]).toBeDefined();
             });
           }
         ),
