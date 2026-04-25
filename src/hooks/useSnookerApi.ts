@@ -2,7 +2,7 @@
  * Custom React hooks for snooker.org API calls with caching and error handling
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type {
   Player,
   PlayerProfile,

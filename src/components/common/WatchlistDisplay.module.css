@@ -1,0 +1,159 @@
+/**
+ * Styles for WatchlistDisplay component
+ */
+
+.watchlist-display {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.watchlist-display.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.watchlist-display.error {
+  border-color: #dc3545;
+  background-color: #f8d7da;
+}
+
+.loading-spinner {
+  color: #666;
+  font-style: italic;
+}
+
+.error-message {
+  color: #721c24;
+  font-weight: 500;
+}
+
+.watchlist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.watchlist-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.clear-watchlist-button {
+  padding: 0.25rem 0.75rem;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clear-watchlist-button:hover {
+  background-color: #c82333;
+}
+
+.clear-watchlist-button:focus {
+  outline: 2px solid #dc3545;
+  outline-offset: 2px;
+}
+
+.empty-watchlist {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #666;
+}
+
+.empty-watchlist p {
+  margin: 0.5rem 0;
+}
+
+.empty-watchlist p:first-child {
+  font-weight: 500;
+  color: #333;
+}
+
+.watchlist-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.watchlist-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.watchlist-item:hover {
+  background-color: #e9ecef;
+}
+
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.player-id {
+  font-weight: 500;
+  color: #333;
+}
+
+.watchlist-item-button {
+  flex-shrink: 0;
+}
+
+.watchlist-more {
+  text-align: center;
+  padding: 0.5rem;
+  color: #666;
+  font-style: italic;
+}
+
+.watchlist-more p {
+  margin: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .watchlist-display {
+    padding: 0.75rem;
+    margin: 0.75rem 0;
+  }
+
+  .watchlist-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .watchlist-header h3 {
+    font-size: 1.125rem;
+  }
+
+  .watchlist-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .watchlist-item-button {
+    align-self: stretch;
+  }
+}

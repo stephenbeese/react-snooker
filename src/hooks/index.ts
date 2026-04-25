@@ -4,3 +4,4 @@
  */
 
 export * from './useSnookerApi';
+export * from './useWatchlist';
