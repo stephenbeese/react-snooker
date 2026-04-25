@@ -8,12 +8,13 @@ import type { Event } from '../types/snooker';
  * Filter criteria for events
  */
 export interface EventFilterCriteria {
-  tour?: string;
+  tourType?: string;
   season?: number;
   startDate?: string;
   endDate?: string;
   country?: string;
   venue?: string;
+  minPrizeFund?: number;
 }
 
 /**
@@ -51,6 +52,31 @@ export const categorizeEventByTour = (event: Event): string => {
   
   // Return the original tour value if it doesn't match standard categories
   return event.Tour;
+};
+
+/**
+ * Categorize events by tour type into groups
+ * @param events Array of events to categorize
+ * @returns Object with tour types as keys and arrays of events as values
+ */
+export const categorizeEventsByTour = (events: Event[]): Record<string, Event[]> => {
+  const categories: Record<string, Event[]> = {
+    'Main Tour': [],
+    'Q Tour': [],
+    'Amateur': [],
+    'Other': []
+  };
+  
+  events.forEach(event => {
+    const category = categorizeEventByTour(event);
+    if (categories[category]) {
+      categories[category].push(event);
+    } else {
+      categories['Other'].push(event);
+    }
+  });
+  
+  return categories;
 };
 
 /**
@@ -177,8 +203,8 @@ export const filterEvents = (events: Event[], criteria: EventFilterCriteria): Ev
   let filtered = [...events];
   
   // Apply tour filter
-  if (criteria.tour) {
-    filtered = filterEventsByTour(filtered, criteria.tour);
+  if (criteria.tourType) {
+    filtered = filterEventsByTour(filtered, criteria.tourType);
   }
   
   // Apply season filter
@@ -202,6 +228,14 @@ export const filterEvents = (events: Event[], criteria: EventFilterCriteria): Ev
   // Apply venue filter
   if (criteria.venue) {
     filtered = filterEventsByVenue(filtered, criteria.venue);
+  }
+  
+  // Apply minimum prize fund filter
+  if (criteria.minPrizeFund !== undefined) {
+    filtered = filtered.filter(event => 
+      event.Prize_Fund !== undefined && 
+      event.Prize_Fund >= (criteria.minPrizeFund || 0)
+    );
   }
   
   return filtered;
