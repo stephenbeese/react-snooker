@@ -20,6 +20,9 @@ export default defineConfig(({ mode }) => {
               const apiKey = env.VITE_X_REQUESTED_BY || '';
               proxyReq.setHeader('X-Requested-By', apiKey);
             });
+            proxy.on('proxyRes', (proxyRes, req, res) => {
+              // Proxy response received successfully
+            });
           },
         },
       },

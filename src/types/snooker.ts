@@ -2,14 +2,34 @@
  * Type definitions for snooker.org API responses
  */
 
+/**
+ * Type definitions for snooker.org API responses
+ */
+
 export interface Player {
   ID: number;
-  Name: string;
+  FirstName: string;
+  MiddleName?: string;
+  LastName: string;
+  ShortName?: string;
   Nationality: string;
-  Born?: number;
-  Turned_Pro?: number;
-  Status: 'P' | 'A'; // Professional or Amateur
-  Image_Url?: string;
+  Born?: string; // API returns date string like "1975-03-21"
+  FirstSeasonAsPro?: number;
+  LastSeasonAsPro?: number;
+  Status?: 'P' | 'A'; // Professional or Amateur - derived from Type
+  Type?: number; // 1 = Professional, other = Amateur
+  Photo?: string; // Image URL
+  Sex?: 'M' | 'F';
+  Twitter?: string;
+  BioPage?: string;
+  URL?: string;
+  NumRankingTitles?: number;
+  NumMaximums?: number;
+  
+  // Computed fields for compatibility
+  Name?: string; // Will be computed from FirstName + LastName
+  Image_Url?: string; // Will be mapped from Photo
+  Turned_Pro?: number; // Will be mapped from FirstSeasonAsPro
 }
 
 export interface PlayerProfile extends Player {
@@ -18,6 +38,8 @@ export interface PlayerProfile extends Player {
   Money_Ranking?: number;
   Money_Ranking_Points?: number;
   Frame_Win_Percentage?: number;
+  Bio?: string;
+  Nickname?: string;
 }
 
 export interface Event {

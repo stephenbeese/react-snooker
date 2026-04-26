@@ -6,6 +6,7 @@ import { useState, useCallback } from 'react';
 import { useEvent, useMatchesByEvent } from '../hooks/useSnookerApi';
 import { EventMatches } from '../components/pages/EventMatches';
 import { EventStats } from '../components/pages/EventStats';
+import { TournamentBracket } from '../components/pages/TournamentBracket';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import type { Event } from '../types';
@@ -15,7 +16,7 @@ interface EventDetailPageProps {
 }
 
 export const EventDetailPage = ({ eventId }: EventDetailPageProps) => {
-  const [activeTab, setActiveTab] = useState<'matches' | 'stats'>('matches');
+  const [activeTab, setActiveTab] = useState<'bracket' | 'matches' | 'stats'>('bracket');
   
   // Fetch event details and matches
   const { data: event, loading: eventLoading, error: eventError } = useEvent(eventId);
@@ -99,6 +100,17 @@ export const EventDetailPage = ({ eventId }: EventDetailPageProps) => {
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6" aria-label="Event sections">
             <button
+              onClick={() => setActiveTab('bracket')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'bracket'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+              aria-current={activeTab === 'bracket' ? 'page' : undefined}
+            >
+              Bracket
+            </button>
+            <button
               onClick={() => setActiveTab('matches')}
               className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === 'matches'
@@ -125,6 +137,19 @@ export const EventDetailPage = ({ eventId }: EventDetailPageProps) => {
 
         {/* Tab Content */}
         <div className="p-6">
+          {activeTab === 'bracket' && (
+            <TournamentBracket
+              event={event}
+              matches={matches || []}
+              loading={matchesLoading}
+              error={matchesError}
+              onRetry={handleRetry}
+              onMatchClick={(match) => {
+                console.log('Match clicked:', match);
+                // Could navigate to match detail page or show more details
+              }}
+            />
+          )}
           {activeTab === 'matches' && (
             <EventMatches
               eventId={eventId}

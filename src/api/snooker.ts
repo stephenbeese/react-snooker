@@ -104,6 +104,46 @@ export const clearApiCache = (): void => {
 };
 
 /**
+ * Transform raw API player data to our expected format
+ */
+const transformPlayerData = (rawPlayer: any): Player => {
+  // Construct full name
+  const nameParts = [rawPlayer.FirstName, rawPlayer.MiddleName, rawPlayer.LastName].filter(Boolean);
+  const fullName = nameParts.join(' ');
+  
+  // Parse birth year from date string
+  let birthYear: number | undefined;
+  if (rawPlayer.Born) {
+    const birthDate = new Date(rawPlayer.Born);
+    birthYear = birthDate.getFullYear();
+  }
+  
+  // Determine status from Type (1 = Professional)
+  const status: 'P' | 'A' = rawPlayer.Type === 1 ? 'P' : 'A';
+  
+  return {
+    ...rawPlayer,
+    Name: rawPlayer.ShortName || fullName,
+    Image_Url: rawPlayer.Photo,
+    Turned_Pro: rawPlayer.FirstSeasonAsPro,
+    Born: birthYear,
+    Status: status,
+  };
+};
+
+/**
+ * Transform array of raw API player data
+ */
+const transformPlayersData = (rawPlayers: any[]): Player[] => {
+  if (!Array.isArray(rawPlayers)) {
+    console.warn('Expected array of players, got:', typeof rawPlayers);
+    return [];
+  }
+  
+  return rawPlayers.map(transformPlayerData);
+};
+
+/**
  * Generic fetch wrapper with error handling, header injection, and caching
  * Falls back to mock API on 403 errors
  */
@@ -135,6 +175,8 @@ const fetchFromApi = async <T>(
     
     const response = await fetch(url, { headers });
 
+    console.log('📡 API Response status:', response.status, response.statusText);
+
     if (!response.ok) {
       // If we get a 403 or 401 error, the API key is likely invalid
       // Fall back to mock API for development
@@ -149,6 +191,16 @@ const fetchFromApi = async <T>(
         status: response.status,
       };
       throw error;
+    }
+
+    // Check content type
+    const contentType = response.headers.get('content-type');
+    
+    if (!contentType || !contentType.includes('application/json')) {
+      console.warn('⚠️ Response is not JSON, likely HTML error page - API key may be invalid');
+      const text = await response.text();
+      console.log('📄 Response text (first 200 chars):', text.substring(0, 200));
+      throw new Error('API_KEY_INVALID');
     }
 
     const data = await response.json();
@@ -219,7 +271,8 @@ export const getMatch = async (
 export const getPlayer = async (playerId: number): Promise<PlayerProfile> => {
   try {
     const params = new URLSearchParams({ p: String(playerId) });
-    return await fetchFromApi<PlayerProfile>(params, 'getPlayer', CACHE_TTL_STANDARD);
+    const rawResult = await fetchFromApi<any>(params, 'getPlayer', CACHE_TTL_STANDARD);
+    return transformPlayerData(rawResult) as PlayerProfile;
   } catch (error) {
     if (error instanceof Error && error.message === 'API_KEY_INVALID') {
       return await mockApi.getPlayer(playerId);
@@ -333,7 +386,8 @@ export const getPlayersByEvent = async (eventId: number): Promise<Player[]> => {
       t: '9',
       e: String(eventId),
     });
-    return await fetchFromApi<Player[]>(params, 'getPlayersByEvent', CACHE_TTL_STANDARD);
+    const rawResult = await fetchFromApi<any[]>(params, 'getPlayersByEvent', CACHE_TTL_STANDARD);
+    return transformPlayersData(rawResult);
   } catch (error) {
     if (error instanceof Error && error.message === 'API_KEY_INVALID') {
       return await mockApi.getPlayersByEvent(eventId);
@@ -362,8 +416,24 @@ export const getAllPlayers = async (
     if (gender) {
       params.append('se', gender);
     }
-    return await fetchFromApi<Player[]>(params, 'getAllPlayers', CACHE_TTL_STANDARD);
+    
+    console.log('🔍 getAllPlayers API call:', {
+      url: `${API_BASE}/?${params.toString()}`,
+      params: params.toString(),
+      season,
+      status,
+      gender
+    });
+    
+    const rawResult = await fetchFromApi<any[]>(params, 'getAllPlayers', CACHE_TTL_STANDARD);
+    console.log('✅ getAllPlayers raw result sample:', rawResult?.slice(0, 2));
+    
+    const transformedResult = transformPlayersData(rawResult);
+    console.log('✅ getAllPlayers transformed result sample:', transformedResult?.slice(0, 2));
+    
+    return transformedResult;
   } catch (error) {
+    console.log('❌ getAllPlayers error, falling back to mock:', error);
     if (error instanceof Error && error.message === 'API_KEY_INVALID') {
       return await mockApi.getAllPlayers(season, status, gender);
     }
