@@ -27,3 +27,7 @@ export { PressureStats } from './pages/PressureStats';
 export { WatchlistSection } from './pages/WatchlistSection';
 export { LiveMatchesSection } from './pages/LiveMatchesSection';
 export { UpcomingMatchesSection } from './pages/UpcomingMatchesSection';
+export { PlayerSelector } from './pages/PlayerSelector';
+export { H2HStats } from './pages/H2HStats';
+export { H2HChart } from './pages/H2HChart';
+export { H2HMatchHistory } from './pages/H2HMatchHistory';
