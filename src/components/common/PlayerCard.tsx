@@ -3,22 +3,21 @@
  */
 
 import type { Player } from '../../types';
+import { WatchlistButton } from './WatchlistButton';
 
 interface PlayerCardProps {
   player: Player;
   onClick?: () => void;
+  showWatchlistButton?: boolean;
 }
 
-export const PlayerCard = ({ player, onClick }: PlayerCardProps) => {
+export const PlayerCard = ({ player, onClick, showWatchlistButton = true }: PlayerCardProps) => {
   // Generate a placeholder image URL if no image is available
   const getPlayerImageUrl = (player: Player): string => {
     if (player.Image_Url) {
       return player.Image_Url;
     }
-    // Use a placeholder service with the player's initials
-    const initials = player.Name 
-      ? player.Name.split(' ').map(n => n[0]).join('').toUpperCase()
-      : '?';
+    // Use a placeholder service with the player's name
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(player.Name || 'Unknown')}&size=200&background=1f2937&color=ffffff&bold=true`;
   };
 
@@ -217,7 +216,7 @@ export const PlayerCard = ({ player, onClick }: PlayerCardProps) => {
           {player.Born && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
               <span>🎂</span>
-              <span>{new Date().getFullYear() - player.Born} yrs</span>
+              <span>{new Date().getFullYear() - parseInt(player.Born.split('-')[0])} yrs</span>
             </div>
           )}
           {player.Turned_Pro && (
@@ -228,6 +227,17 @@ export const PlayerCard = ({ player, onClick }: PlayerCardProps) => {
           )}
         </div>
       </div>
+
+      {/* Watchlist Button */}
+      {showWatchlistButton && (
+        <div style={{ marginTop: '12px', width: '100%' }}>
+          <WatchlistButton 
+            playerId={player.ID} 
+            playerName={player.Name}
+            className="w-full text-sm py-2"
+          />
+        </div>
+      )}
     </div>
   );
 };
