@@ -1,6 +1,7 @@
 /**
  * Snooker.org API Client
  * Handles all API requests to the snooker.org API with proper headers and error handling
+ * Falls back to mock API when real API is unavailable (403 errors)
  */
 
 import type {
@@ -19,6 +20,9 @@ import type {
   PlayerStatus,
   Gender,
 } from '../types/snooker';
+
+// Import mock API functions
+import * as mockApi from './mockApi';
 
 const API_BASE = import.meta.env.DEV ? '/api/snooker' : 'https://api.snooker.org';
 
@@ -101,6 +105,7 @@ export const clearApiCache = (): void => {
 
 /**
  * Generic fetch wrapper with error handling, header injection, and caching
+ * Falls back to mock API on 403 errors
  */
 const fetchFromApi = async <T>(
   params: URLSearchParams,
@@ -131,6 +136,14 @@ const fetchFromApi = async <T>(
     const response = await fetch(url, { headers });
 
     if (!response.ok) {
+      // If we get a 403 or 401 error, the API key is likely invalid
+      // Fall back to mock API for development
+      if (response.status === 403 || response.status === 401) {
+        console.warn(`⚠️ Snooker API returned ${response.status} - API key may be invalid. Using mock data for development.`);
+        console.warn('📧 To fix this, request a new API key by emailing webmaster@snooker.org');
+        throw new Error('API_KEY_INVALID');
+      }
+      
       const error: ApiError = {
         message: `API request failed: ${response.statusText}`,
         status: response.status,
@@ -145,6 +158,11 @@ const fetchFromApi = async <T>(
     
     return data as T;
   } catch (error) {
+    // If API key is invalid, fall back to mock API
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      throw error; // Re-throw to be caught by individual functions
+    }
+    
     if (error instanceof Error) {
       throw new Error(`Snooker API Error: ${error.message}`);
     }
@@ -156,9 +174,16 @@ const fetchFromApi = async <T>(
  * Get information about a specific event
  * @param eventId - The ID of the event
  */
-export const getEvent = (eventId: number): Promise<Event> => {
-  const params = new URLSearchParams({ e: String(eventId) });
-  return fetchFromApi<Event>(params, 'getEvent', CACHE_TTL_STANDARD);
+export const getEvent = async (eventId: number): Promise<Event> => {
+  try {
+    const params = new URLSearchParams({ e: String(eventId) });
+    return await fetchFromApi<Event>(params, 'getEvent', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getEvent(eventId);
+    }
+    throw error;
+  }
 };
 
 /**
@@ -167,26 +192,40 @@ export const getEvent = (eventId: number): Promise<Event> => {
  * @param roundId - The ID of the round
  * @param matchNumber - The match number
  */
-export const getMatch = (
+export const getMatch = async (
   eventId: number,
   roundId: number,
   matchNumber: number
 ): Promise<Match> => {
-  const params = new URLSearchParams({
-    e: String(eventId),
-    r: String(roundId),
-    n: String(matchNumber),
-  });
-  return fetchFromApi<Match>(params, 'getMatch', CACHE_TTL_STANDARD);
+  try {
+    const params = new URLSearchParams({
+      e: String(eventId),
+      r: String(roundId),
+      n: String(matchNumber),
+    });
+    return await fetchFromApi<Match>(params, 'getMatch', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getMatch(eventId, roundId, matchNumber);
+    }
+    throw error;
+  }
 };
 
 /**
  * Get information about a specific player
  * @param playerId - The ID of the player
  */
-export const getPlayer = (playerId: number): Promise<PlayerProfile> => {
-  const params = new URLSearchParams({ p: String(playerId) });
-  return fetchFromApi<PlayerProfile>(params, 'getPlayer', CACHE_TTL_STANDARD);
+export const getPlayer = async (playerId: number): Promise<PlayerProfile> => {
+  try {
+    const params = new URLSearchParams({ p: String(playerId) });
+    return await fetchFromApi<PlayerProfile>(params, 'getPlayer', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getPlayer(playerId);
+    }
+    throw error;
+  }
 };
 
 /**
@@ -194,42 +233,63 @@ export const getPlayer = (playerId: number): Promise<PlayerProfile> => {
  * @param season - The season year (e.g., 2024 for 2024/2025 season), or -1 for all seasons
  * @param tour - Optional tour filter ('main', 'q', 'amateur')
  */
-export const getEventsBySeason = (
+export const getEventsBySeason = async (
   season: number = -1,
   tour?: Tour
 ): Promise<Event[]> => {
-  const params = new URLSearchParams({
-    t: '5',
-    s: String(season),
-  });
-  if (tour) {
-    params.append('tr', tour);
+  try {
+    const params = new URLSearchParams({
+      t: '5',
+      s: String(season),
+    });
+    if (tour) {
+      params.append('tr', tour);
+    }
+    return await fetchFromApi<Event[]>(params, 'getEventsBySeason', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getEventsBySeason(season, tour);
+    }
+    throw error;
   }
-  return fetchFromApi<Event[]>(params, 'getEventsBySeason', CACHE_TTL_STANDARD);
 };
 
 /**
  * Get all matches in a specific event
  * @param eventId - The ID of the event
  */
-export const getMatchesByEvent = (eventId: number): Promise<Match[]> => {
-  const params = new URLSearchParams({
-    t: '6',
-    e: String(eventId),
-  });
-  return fetchFromApi<Match[]>(params, 'getMatchesByEvent', CACHE_TTL_STANDARD);
+export const getMatchesByEvent = async (eventId: number): Promise<Match[]> => {
+  try {
+    const params = new URLSearchParams({
+      t: '6',
+      e: String(eventId),
+    });
+    return await fetchFromApi<Match[]>(params, 'getMatchesByEvent', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getMatchesByEvent(eventId);
+    }
+    throw error;
+  }
 };
 
 /**
  * Get ongoing matches (including those between sessions)
  * @param tour - Optional tour filter ('main', 'q', 'amateur')
  */
-export const getOngoingMatches = (tour?: Tour): Promise<Match[]> => {
-  const params = new URLSearchParams({ t: '7' });
-  if (tour) {
-    params.append('tr', tour);
+export const getOngoingMatches = async (tour?: Tour): Promise<Match[]> => {
+  try {
+    const params = new URLSearchParams({ t: '7' });
+    if (tour) {
+      params.append('tr', tour);
+    }
+    return await fetchFromApi<Match[]>(params, 'getOngoingMatches', CACHE_TTL_LIVE);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getOngoingMatches(tour);
+    }
+    throw error;
   }
-  return fetchFromApi<Match[]>(params, 'getOngoingMatches', CACHE_TTL_LIVE);
 };
 
 /**
@@ -238,34 +298,48 @@ export const getOngoingMatches = (tour?: Tour): Promise<Match[]> => {
  * @param season - Optional season year, or -1 for all seasons
  * @param tour - Optional tour filter ('main', 'q', 'amateur')
  */
-export const getPlayerMatches = (
+export const getPlayerMatches = async (
   playerId: number,
   season?: number,
   tour?: Tour
 ): Promise<Match[]> => {
-  const params = new URLSearchParams({
-    t: '8',
-    p: String(playerId),
-  });
-  if (season !== undefined) {
-    params.append('s', String(season));
+  try {
+    const params = new URLSearchParams({
+      t: '8',
+      p: String(playerId),
+    });
+    if (season !== undefined) {
+      params.append('s', String(season));
+    }
+    if (tour) {
+      params.append('tr', tour);
+    }
+    return await fetchFromApi<Match[]>(params, 'getPlayerMatches', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getPlayerMatches(playerId, season, tour);
+    }
+    throw error;
   }
-  if (tour) {
-    params.append('tr', tour);
-  }
-  return fetchFromApi<Match[]>(params, 'getPlayerMatches', CACHE_TTL_STANDARD);
 };
 
 /**
  * Get all players in a specific event
  * @param eventId - The ID of the event
  */
-export const getPlayersByEvent = (eventId: number): Promise<Player[]> => {
-  const params = new URLSearchParams({
-    t: '9',
-    e: String(eventId),
-  });
-  return fetchFromApi<Player[]>(params, 'getPlayersByEvent', CACHE_TTL_STANDARD);
+export const getPlayersByEvent = async (eventId: number): Promise<Player[]> => {
+  try {
+    const params = new URLSearchParams({
+      t: '9',
+      e: String(eventId),
+    });
+    return await fetchFromApi<Player[]>(params, 'getPlayersByEvent', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getPlayersByEvent(eventId);
+    }
+    throw error;
+  }
 };
 
 /**
@@ -274,20 +348,27 @@ export const getPlayersByEvent = (eventId: number): Promise<Player[]> => {
  * @param status - Player status: 'p' for professional, 'a' for amateur
  * @param gender - Optional gender filter: 'm' for male, 'f' for female
  */
-export const getAllPlayers = (
+export const getAllPlayers = async (
   season: number = -1,
   status: PlayerStatus = 'p',
   gender?: Gender
 ): Promise<Player[]> => {
-  const params = new URLSearchParams({
-    t: '10',
-    st: status,
-    s: String(season),
-  });
-  if (gender) {
-    params.append('se', gender);
+  try {
+    const params = new URLSearchParams({
+      t: '10',
+      st: status,
+      s: String(season),
+    });
+    if (gender) {
+      params.append('se', gender);
+    }
+    return await fetchFromApi<Player[]>(params, 'getAllPlayers', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getAllPlayers(season, status, gender);
+    }
+    throw error;
   }
-  return fetchFromApi<Player[]>(params, 'getAllPlayers', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -295,15 +376,22 @@ export const getAllPlayers = (
  * @param rankingType - Type of ranking (MoneyRankings, WorldRankings, etc.)
  * @param season - The season year
  */
-export const getRankings = (
+export const getRankings = async (
   rankingType: RankingType = 'MoneyRankings',
   season: number = 2024
 ): Promise<Ranking[]> => {
-  const params = new URLSearchParams({
-    rt: rankingType,
-    s: String(season),
-  });
-  return fetchFromApi<Ranking[]>(params, 'getRankings', CACHE_TTL_STANDARD);
+  try {
+    const params = new URLSearchParams({
+      rt: rankingType,
+      s: String(season),
+    });
+    return await fetchFromApi<Ranking[]>(params, 'getRankings', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getRankings(rankingType, season);
+    }
+    throw error;
+  }
 };
 
 /**
@@ -340,12 +428,19 @@ export const getEventSeeding = (eventId: number): Promise<EventSeeding> => {
  * Get upcoming matches
  * @param tour - Optional tour filter ('main', 'q', 'amateur')
  */
-export const getUpcomingMatches = (tour?: Tour): Promise<Match[]> => {
-  const params = new URLSearchParams({ t: '14' });
-  if (tour) {
-    params.append('tr', tour);
+export const getUpcomingMatches = async (tour?: Tour): Promise<Match[]> => {
+  try {
+    const params = new URLSearchParams({ t: '14' });
+    if (tour) {
+      params.append('tr', tour);
+    }
+    return await fetchFromApi<Match[]>(params, 'getUpcomingMatches', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getUpcomingMatches(tour);
+    }
+    throw error;
   }
-  return fetchFromApi<Match[]>(params, 'getUpcomingMatches', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -353,18 +448,25 @@ export const getUpcomingMatches = (tour?: Tour): Promise<Match[]> => {
  * @param days - Number of days to look back (default: 0 for today only)
  * @param tour - Optional tour filter ('main', 'q', 'amateur')
  */
-export const getRecentResults = (
+export const getRecentResults = async (
   days: number = 0,
   tour?: Tour
 ): Promise<Match[]> => {
-  const params = new URLSearchParams({
-    t: '15',
-    ds: String(days),
-  });
-  if (tour) {
-    params.append('tr', tour);
+  try {
+    const params = new URLSearchParams({
+      t: '15',
+      ds: String(days),
+    });
+    if (tour) {
+      params.append('tr', tour);
+    }
+    return await fetchFromApi<Match[]>(params, 'getRecentResults', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getRecentResults(days, tour);
+    }
+    throw error;
   }
-  return fetchFromApi<Match[]>(params, 'getRecentResults', CACHE_TTL_STANDARD);
 };
 
 /**
@@ -432,9 +534,16 @@ export const getEventFinals = (eventId: number): Promise<Match[]> => {
 /**
  * Get the current season
  */
-export const getCurrentSeason = (): Promise<Season> => {
-  const params = new URLSearchParams({ t: '20' });
-  return fetchFromApi<Season>(params, 'getCurrentSeason', CACHE_TTL_STANDARD);
+export const getCurrentSeason = async (): Promise<Season> => {
+  try {
+    const params = new URLSearchParams({ t: '20' });
+    return await fetchFromApi<Season>(params, 'getCurrentSeason', CACHE_TTL_STANDARD);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'API_KEY_INVALID') {
+      return await mockApi.getCurrentSeason();
+    }
+    throw error;
+  }
 };
 
 /**
