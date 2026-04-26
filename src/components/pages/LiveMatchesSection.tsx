@@ -1,20 +1,48 @@
 /**
  * LiveMatchesSection component - Displays live matches for home page
  * Shows currently ongoing matches with live indicators
+ * Auto-refreshes every minute to keep data current
  */
 
-import React from 'react';
-import { useOngoingMatches } from '../../hooks/useSnookerApi';
+import React, { useEffect, useState } from 'react';
+import { useOngoingMatches, clearCacheEntry } from '../../hooks/useSnookerApi';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { ErrorMessage } from '../common/ErrorMessage';
 import { MatchResult } from '../common/MatchResult';
 
 interface LiveMatchesSectionProps {
   className?: string;
+  refreshInterval?: number; // in milliseconds, default 60000 (1 minute)
 }
 
-export const LiveMatchesSection: React.FC<LiveMatchesSectionProps> = ({ className = '' }) => {
+export const LiveMatchesSection: React.FC<LiveMatchesSectionProps> = ({ 
+  className = '',
+  refreshInterval = 60000 // 1 minute default
+}) => {
   const { data: liveMatches, loading, error } = useOngoingMatches();
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Auto-refresh effect
+  useEffect(() => {
+    // Only set up auto-refresh if there are live matches
+    if (!liveMatches || liveMatches.length === 0) {
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      // Clear the cache for ongoing matches to force a fresh fetch
+      const params = new URLSearchParams({ t: '7' });
+      const cacheKey = `getOngoingMatches:${params.toString()}`;
+      clearCacheEntry(cacheKey);
+      
+      // Trigger a re-render by updating the refresh key
+      setRefreshKey(prev => prev + 1);
+    }, refreshInterval);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [liveMatches, refreshInterval]);
 
   if (loading) {
     return (

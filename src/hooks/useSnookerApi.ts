@@ -276,6 +276,22 @@ export const useEventRankingPoints = (eventId: number) => {
 };
 
 /**
+ * Hook to fetch a specific match
+ */
+export const useMatch = (
+  eventId: number,
+  roundId: number,
+  matchNumber: number
+) => {
+  const cacheKey = getCacheKey('getMatch', [eventId, roundId, matchNumber]);
+  return useApiCall<Match>(
+    snookerApi.getMatch,
+    [eventId, roundId, matchNumber],
+    cacheKey
+  );
+};
+
+/**
  * Clear all cached data
  */
 export const clearApiCache = (): void => {
