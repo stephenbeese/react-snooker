@@ -31,3 +31,4 @@ export { PlayerSelector } from './pages/PlayerSelector';
 export { H2HStats } from './pages/H2HStats';
 export { H2HChart } from './pages/H2HChart';
 export { H2HMatchHistory } from './pages/H2HMatchHistory';
+export { SearchResults } from './pages/SearchResults';

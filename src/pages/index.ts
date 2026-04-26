@@ -12,3 +12,4 @@ export { MatchDetailPage } from './MatchDetailPage';
 export { RankingsPage } from './RankingsPage';
 export { HeadToHeadPage } from './HeadToHeadPage';
 export { HistoricalPage } from './HistoricalPage';
+export { SearchPage } from './SearchPage';
