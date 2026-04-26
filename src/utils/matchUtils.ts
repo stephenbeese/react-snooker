@@ -324,6 +324,29 @@ export const groupMatchesByDate = (matches: Match[]): Record<string, Match[]> =>
 };
 
 /**
+ * Check if a match's date matches a target date (month and day only, ignoring year)
+ * Used for "On this day" historical feature
+ * @param match Match to check
+ * @param targetDate Target date to match against
+ * @returns True if the match's month and day match the target date
+ */
+export const matchesHistoricalDate = (match: Match, targetDate: Date): boolean => {
+  if (!match.Date_Time) {
+    return false;
+  }
+  
+  try {
+    const matchDate = new Date(match.Date_Time);
+    
+    // Compare month (0-11) and day (1-31)
+    return matchDate.getMonth() === targetDate.getMonth() &&
+           matchDate.getDate() === targetDate.getDate();
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Calculate match statistics for a player
  * @param matches Array of matches for the player
  * @param playerId Player ID to calculate stats for
