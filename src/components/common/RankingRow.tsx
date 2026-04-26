@@ -10,17 +10,24 @@ interface RankingRowProps {
 }
 
 export const RankingRow = ({ ranking, onClick }: RankingRowProps) => {
-  const changeIndicator = ranking.Change ? (
-    ranking.Change > 0 ? '↑' : ranking.Change < 0 ? '↓' : '→'
-  ) : null;
+  // Always show a change indicator
+  const changeIndicator = ranking.Change !== undefined
+    ? ranking.Change > 0 
+      ? '↑' 
+      : ranking.Change < 0 
+      ? '↓' 
+      : '→'
+    : '→'; // Default to no change if undefined
 
-  const changeText = ranking.Change 
+  const changeText = ranking.Change !== undefined
     ? ranking.Change > 0 
       ? `up ${Math.abs(ranking.Change)} positions`
       : ranking.Change < 0 
       ? `down ${Math.abs(ranking.Change)} positions`
       : 'no change'
     : 'no change data';
+
+  const changeValue = ranking.Change !== undefined ? Math.abs(ranking.Change) : 0;
 
   return (
     <tr 
@@ -40,24 +47,22 @@ export const RankingRow = ({ ranking, onClick }: RankingRowProps) => {
       <td className="px-4 py-3 font-medium text-gray-900">{ranking.Player_Name}</td>
       <td className="px-4 py-3 text-gray-600">{ranking.Nationality}</td>
       <td className="px-4 py-3 text-right font-medium text-gray-900">{ranking.Points.toLocaleString()}</td>
-      {ranking.Money && (
+      {ranking.Money !== undefined && ranking.Money !== null && (
         <td className="px-4 py-3 text-right text-green-600 font-medium">
           £{ranking.Money.toLocaleString()}
         </td>
       )}
-      {changeIndicator && (
-        <td className={`px-4 py-3 text-center font-medium ${
-          ranking.Change && ranking.Change > 0 
-            ? 'text-green-600' 
-            : ranking.Change && ranking.Change < 0 
-            ? 'text-red-600' 
-            : 'text-gray-500'
-        }`}>
-          <span aria-hidden="true">{changeIndicator}</span>
-          <span className="sr-only">{changeText}</span>
-          <span aria-hidden="true"> {Math.abs(ranking.Change || 0)}</span>
-        </td>
-      )}
+      <td className={`px-4 py-3 text-center font-medium ${
+        ranking.Change && ranking.Change > 0 
+          ? 'text-green-600' 
+          : ranking.Change && ranking.Change < 0 
+          ? 'text-red-600' 
+          : 'text-gray-500'
+      }`}>
+        <span aria-hidden="true">{changeIndicator}</span>
+        <span className="sr-only">{changeText}</span>
+        <span aria-hidden="true"> {changeValue}</span>
+      </td>
     </tr>
   );
 };

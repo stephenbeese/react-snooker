@@ -9,3 +9,4 @@ export { EventsPage } from './EventsPage';
 export { EventDetailPage } from './EventDetailPage';
 export { ResultsPage } from './ResultsPage';
 export { MatchDetailPage } from './MatchDetailPage';
+export { RankingsPage } from './RankingsPage';
