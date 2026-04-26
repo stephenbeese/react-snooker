@@ -3,7 +3,7 @@
  * Contains logo, search bar, and main navigation
  */
 
-import { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { SearchBar } from '../common/SearchBar';
 
 export interface HeaderProps {
@@ -13,8 +13,35 @@ export interface HeaderProps {
 }
 
 export const Header = ({ onSearch, onMenuToggle, isMobileMenuOpen = false }: HeaderProps) => {
+  const location = useLocation();
+
   const handleSearch = (term: string) => {
     onSearch?.(term);
+  };
+
+  // Helper function to determine if a link is active
+  const isActiveLink = (path: string) => {
+    if (path === '/') {
+      return location.pathname === '/';
+    }
+    return location.pathname.startsWith(path);
+  };
+
+  // Navigation link component
+  const NavLink = ({ to, children, className = '' }: { to: string; children: React.ReactNode; className?: string }) => {
+    const isActive = isActiveLink(to);
+    const baseClasses = "px-3 py-2 rounded-md text-sm font-medium transition-colors";
+    const activeClasses = "bg-green-100 text-green-900";
+    const inactiveClasses = "text-gray-600 hover:bg-gray-100 hover:text-gray-900";
+    
+    return (
+      <Link
+        to={to}
+        className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses} ${className}`}
+      >
+        {children}
+      </Link>
+    );
   };
 
   return (
@@ -24,52 +51,26 @@ export const Header = ({ onSearch, onMenuToggle, isMobileMenuOpen = false }: Hea
           {/* Logo */}
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-gray-900">
-                <span className="text-green-600">Snooker</span>
-                <span className="text-gray-800">Results</span>
-              </h1>
+              <Link to="/" className="flex items-center">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  <span className="text-green-600">Snooker</span>
+                  <span className="text-gray-800">Results</span>
+                </h1>
+              </Link>
             </div>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              <a
-                href="/"
-                className="text-gray-900 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Home
-              </a>
-              <a
-                href="/players"
-                className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Players
-              </a>
-              <a
-                href="/events"
-                className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Events
-              </a>
-              <a
-                href="/results"
-                className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Results
-              </a>
-              <a
-                href="/rankings"
-                className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Rankings
-              </a>
-              <a
-                href="/upcoming"
-                className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                Upcoming
-              </a>
+              <NavLink to="/">Home</NavLink>
+              <NavLink to="/players">Players</NavLink>
+              <NavLink to="/events">Events</NavLink>
+              <NavLink to="/results">Results</NavLink>
+              <NavLink to="/rankings">Rankings</NavLink>
+              <NavLink to="/upcoming">Upcoming</NavLink>
+              <NavLink to="/head-to-head">H2H</NavLink>
+              <NavLink to="/historical">Historical</NavLink>
             </div>
           </nav>
 
@@ -138,42 +139,14 @@ export const Header = ({ onSearch, onMenuToggle, isMobileMenuOpen = false }: Hea
             </div>
             
             {/* Mobile Navigation Links */}
-            <a
-              href="/"
-              className="text-gray-900 hover:bg-gray-100 block px-3 py-2 rounded-md text-base font-medium transition-colors"
-            >
-              Home
-            </a>
-            <a
-              href="/players"
-              className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors"
-            >
-              Players
-            </a>
-            <a
-              href="/events"
-              className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors"
-            >
-              Events
-            </a>
-            <a
-              href="/results"
-              className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors"
-            >
-              Results
-            </a>
-            <a
-              href="/rankings"
-              className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors"
-            >
-              Rankings
-            </a>
-            <a
-              href="/upcoming"
-              className="text-gray-600 hover:bg-gray-100 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium transition-colors"
-            >
-              Upcoming Matches
-            </a>
+            <NavLink to="/" className="block text-base">Home</NavLink>
+            <NavLink to="/players" className="block text-base">Players</NavLink>
+            <NavLink to="/events" className="block text-base">Events</NavLink>
+            <NavLink to="/results" className="block text-base">Results</NavLink>
+            <NavLink to="/rankings" className="block text-base">Rankings</NavLink>
+            <NavLink to="/upcoming" className="block text-base">Upcoming Matches</NavLink>
+            <NavLink to="/head-to-head" className="block text-base">Head to Head</NavLink>
+            <NavLink to="/historical" className="block text-base">Historical</NavLink>
           </div>
         </div>
       </div>

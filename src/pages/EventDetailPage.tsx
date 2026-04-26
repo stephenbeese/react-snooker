@@ -3,6 +3,7 @@
  */
 
 import { useState, useCallback } from 'react';
+import { useParams, Navigate } from 'react-router-dom';
 import { useEvent, useMatchesByEvent } from '../hooks/useSnookerApi';
 import { EventMatches } from '../components/pages/EventMatches';
 import { EventStats } from '../components/pages/EventStats';
@@ -11,12 +12,17 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 import type { Event } from '../types';
 
-interface EventDetailPageProps {
-  eventId: number;
-}
-
-export const EventDetailPage = ({ eventId }: EventDetailPageProps) => {
+export const EventDetailPage = () => {
+  const { eventId: eventIdParam } = useParams<{ eventId: string }>();
   const [activeTab, setActiveTab] = useState<'bracket' | 'matches' | 'stats'>('bracket');
+  
+  // Parse eventId from URL parameter
+  const eventId = eventIdParam ? parseInt(eventIdParam, 10) : null;
+  
+  // Redirect if eventId is invalid
+  if (!eventId || isNaN(eventId)) {
+    return <Navigate to="/events" replace />;
+  }
   
   // Fetch event details and matches
   const { data: event, loading: eventLoading, error: eventError } = useEvent(eventId);

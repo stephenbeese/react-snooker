@@ -2,26 +2,25 @@
  * SearchPage - Dedicated page for search functionality
  */
 
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { SearchResults } from '../components/pages/SearchResults';
 
-interface SearchPageProps {
-  initialSearchTerm?: string;
-}
+export const SearchPage = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  const initialSearchTerm = searchParams.get('q') || '';
 
-export const SearchPage = ({ initialSearchTerm }: SearchPageProps) => {
   const handlePlayerClick = (playerId: number) => {
-    console.log('Navigate to player:', playerId);
-    // In a real app, this would navigate to the player profile page
+    navigate(`/players/${playerId}`);
   };
 
   const handleEventClick = (eventId: number) => {
-    console.log('Navigate to event:', eventId);
-    // In a real app, this would navigate to the event detail page
+    navigate(`/events/${eventId}`);
   };
 
   const handleMatchClick = (matchId: number) => {
-    console.log('Navigate to match:', matchId);
-    // In a real app, this would navigate to the match detail page
+    navigate(`/matches/${matchId}`);
   };
 
   return (
@@ -33,6 +32,11 @@ export const SearchPage = ({ initialSearchTerm }: SearchPageProps) => {
             <p className="mt-2 text-gray-600">
               Search for players, events, and matches across the snooker database.
             </p>
+            {initialSearchTerm && (
+              <p className="mt-2 text-sm text-gray-500">
+                Showing results for: <span className="font-medium">"{initialSearchTerm}"</span>
+              </p>
+            )}
           </div>
         </div>
       </div>

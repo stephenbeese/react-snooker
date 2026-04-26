@@ -6,19 +6,29 @@
  */
 
 import { useCallback } from 'react';
+import { useParams, Navigate } from 'react-router-dom';
 import { useMatch } from '../hooks/useSnookerApi';
 import { FrameByFrameScores } from '../components/pages/FrameByFrameScores';
 import { MatchStats } from '../components/pages/MatchStats';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorMessage } from '../components/common/ErrorMessage';
 
-interface MatchDetailPageProps {
-  eventId: number;
-  roundId: number;
-  matchNumber: number;
-}
-
-export const MatchDetailPage = ({ eventId, roundId, matchNumber }: MatchDetailPageProps) => {
+export const MatchDetailPage = () => {
+  const { matchId: matchIdParam } = useParams<{ matchId: string }>();
+  
+  // Parse matchId from URL parameter
+  const matchId = matchIdParam ? parseInt(matchIdParam, 10) : null;
+  
+  // Redirect if matchId is invalid
+  if (!matchId || isNaN(matchId)) {
+    return <Navigate to="/results" replace />;
+  }
+  
+  // For now, we'll use placeholder values for eventId, roundId, and matchNumber
+  // In a real implementation, these would come from the match data or be part of the URL
+  const eventId = 1; // This should be derived from match data
+  const roundId = 1; // This should be derived from match data
+  const matchNumber = matchId; // Using matchId as matchNumber for now
   // Fetch match details
   const { data: match, loading, error } = useMatch(eventId, roundId, matchNumber);
 

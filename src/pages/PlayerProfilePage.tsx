@@ -4,6 +4,7 @@
  */
 
 import { useState, useMemo } from 'react';
+import { useParams, Navigate } from 'react-router-dom';
 import { usePlayer, usePlayerMatches } from '../hooks/useSnookerApi';
 import { PlayerStats } from '../components/pages/PlayerStats';
 import { MatchHistory } from '../components/pages/MatchHistory';
@@ -14,12 +15,17 @@ import { ErrorMessage } from '../components/common/ErrorMessage';
 import { WatchlistButton } from '../components/common/WatchlistButton';
 import { calculatePlayerForm, calculateFrameWinPercentage } from '../utils/playerUtils';
 
-interface PlayerProfilePageProps {
-  playerId: number;
-}
-
-export const PlayerProfilePage = ({ playerId }: PlayerProfilePageProps) => {
+export const PlayerProfilePage = () => {
+  const { playerId: playerIdParam } = useParams<{ playerId: string }>();
   const [selectedSeason, setSelectedSeason] = useState<number>(-1); // -1 for current season
+  
+  // Parse playerId from URL parameter
+  const playerId = playerIdParam ? parseInt(playerIdParam, 10) : null;
+  
+  // Redirect if playerId is invalid
+  if (!playerId || isNaN(playerId)) {
+    return <Navigate to="/players" replace />;
+  }
   
   // Fetch player data
   const { data: player, loading: playerLoading, error: playerError } = usePlayer(playerId);

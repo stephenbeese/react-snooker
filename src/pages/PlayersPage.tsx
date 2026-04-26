@@ -3,6 +3,7 @@
  */
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAllPlayers } from '../hooks/useSnookerApi';
 import { PlayerList } from '../components/pages/PlayerList';
 import { PlayerFilters } from '../components/pages/PlayerFilters';
@@ -11,6 +12,7 @@ import type { Player } from '../types';
 
 export const PlayersPage = () => {
   const [filterCriteria, setFilterCriteria] = useState<PlayerFilterCriteria>({});
+  const navigate = useNavigate();
   
   // Fetch all professional players for current season by default
   const { data: players, loading, error } = useAllPlayers(2024, 'p');
@@ -35,12 +37,10 @@ export const PlayersPage = () => {
     setFilterCriteria(criteria);
   }, []);
 
-  // Handle player click (placeholder for navigation to player profile)
+  // Handle player click (navigate to player profile)
   const handlePlayerClick = useCallback((player: Player) => {
-    console.log('Player clicked:', player);
-    // TODO: Navigate to player profile page
-    // This would typically use React Router: navigate(`/players/${player.ID}`)
-  }, []);
+    navigate(`/players/${player.ID}`);
+  }, [navigate]);
 
   // Handle retry on error
   const handleRetry = useCallback(() => {

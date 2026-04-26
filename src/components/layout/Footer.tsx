@@ -3,6 +3,8 @@
  * Contains links and information
  */
 
+import { Link } from 'react-router-dom';
+
 export interface FooterLink {
   href: string;
   label: string;
@@ -110,16 +112,14 @@ export const Footer = ({
               <ul className="space-y-2">
                 {section.links.map((link) => (
                   <li key={link.href}>
-                    <a
-                      href={link.href}
-                      className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                      {...(link.external && {
-                        target: '_blank',
-                        rel: 'noopener noreferrer',
-                      })}
-                    >
-                      {link.label}
-                      {link.external && (
+                    {link.external ? (
+                      <a
+                        href={link.href}
+                        className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {link.label}
                         <svg
                           className="inline-block ml-1 h-3 w-3"
                           fill="none"
@@ -134,8 +134,15 @@ export const Footer = ({
                             d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
                           />
                         </svg>
-                      )}
-                    </a>
+                      </a>
+                    ) : (
+                      <Link
+                        to={link.href}
+                        className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -164,24 +171,24 @@ export const Footer = ({
             </div>
             
             <div className="flex space-x-6 text-sm">
-              <a
-                href="/privacy"
+              <Link
+                to="/privacy"
                 className="text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Privacy Policy
-              </a>
-              <a
-                href="/terms"
+              </Link>
+              <Link
+                to="/terms"
                 className="text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Terms of Service
-              </a>
-              <a
-                href="/cookies"
+              </Link>
+              <Link
+                to="/cookies"
                 className="text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Cookie Policy
-              </a>
+              </Link>
             </div>
           </div>
         </div>
