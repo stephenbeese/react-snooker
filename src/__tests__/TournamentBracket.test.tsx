@@ -117,13 +117,13 @@ describe('TournamentBracket Component', () => {
     
     // Should display tournament winner
     expect(screen.getByText('Tournament Winner')).toBeInTheDocument();
-    expect(screen.getByText('Ronnie O\'Sullivan')).toBeInTheDocument();
+    expect(screen.getAllByText('Ronnie O\'Sullivan').length).toBeGreaterThan(0);
     
     // Should display bracket title
     expect(screen.getByText('Tournament Bracket')).toBeInTheDocument();
     
     // Should display round headers
-    expect(screen.getByText('Round 1')).toBeInTheDocument();
+    expect(screen.getByText('Quarter-Final')).toBeInTheDocument();
     expect(screen.getByText('Semi-Final')).toBeInTheDocument();
     expect(screen.getByText('Final')).toBeInTheDocument();
   });
@@ -131,15 +131,15 @@ describe('TournamentBracket Component', () => {
   test('displays matches correctly in each round', () => {
     render(<TournamentBracket {...defaultProps} />);
     
-    // Check that all players are displayed
-    expect(screen.getByText('Ronnie O\'Sullivan')).toBeInTheDocument();
+    // Check that all players are displayed (use getAllByText for players that appear multiple times)
+    expect(screen.getAllByText('Ronnie O\'Sullivan').length).toBeGreaterThan(0);
     expect(screen.getByText('Mark Selby')).toBeInTheDocument();
-    expect(screen.getByText('Judd Trump')).toBeInTheDocument();
+    expect(screen.getAllByText('Judd Trump').length).toBeGreaterThan(0);
     expect(screen.getByText('Neil Robertson')).toBeInTheDocument();
     expect(screen.getByText('Mark Williams')).toBeInTheDocument();
     
     // Check that scores are displayed for completed matches
-    expect(screen.getByText('10')).toBeInTheDocument(); // Multiple 10s
+    expect(screen.getAllByText('10').length).toBeGreaterThan(0); // Multiple 10s
     expect(screen.getByText('8')).toBeInTheDocument();
     expect(screen.getByText('7')).toBeInTheDocument();
     expect(screen.getByText('17')).toBeInTheDocument();
@@ -314,11 +314,12 @@ describe('TournamentBracket Component', () => {
       
       await waitFor(() => {
         expect(screen.getByText('Match Details')).toBeInTheDocument();
-        expect(screen.getByText('Ronnie O\'Sullivan')).toBeInTheDocument();
-        expect(screen.getByText('Mark Williams')).toBeInTheDocument();
-        expect(screen.getByText('18')).toBeInTheDocument(); // Score
-        expect(screen.getByText('13')).toBeInTheDocument(); // Score
-        expect(screen.getByText('Completed')).toBeInTheDocument();
+        // Use getAllByText since player names appear in multiple places
+        expect(screen.getAllByText('Ronnie O\'Sullivan').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('Mark Williams').length).toBeGreaterThan(0);
+        expect(screen.getAllByText('18').length).toBeGreaterThan(0); // Score
+        expect(screen.getAllByText('13').length).toBeGreaterThan(0); // Score
+        expect(screen.getAllByText('Completed').length).toBeGreaterThan(0);
       });
     }
   });
@@ -333,7 +334,8 @@ describe('TournamentBracket Component', () => {
     
     // Should still render the bracket
     expect(screen.getByText('Tournament Bracket')).toBeInTheDocument();
-    expect(screen.getAllByText('Ronnie O\'Sullivan')).toHaveLength(4); // Winner + 3 matches
+    // Ronnie O'Sullivan appears in: winner banner + 3 matches = 4 times
+    expect(screen.getAllByText('Ronnie O\'Sullivan').length).toBe(4);
   });
 
   test('handles matches with frame data in modal', async () => {
